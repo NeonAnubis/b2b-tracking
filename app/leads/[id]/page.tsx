@@ -7,6 +7,10 @@ import { formatDate, timeAgo } from '@/lib/utils'
 import { ArrowLeft, Mail, Building, Phone, Globe, MousePointerClick, Calendar, FileText, ExternalLink } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 async function getLeadWithActivity(id: number) {
   const lead = await prisma.lead.findUnique({
     where: { id },

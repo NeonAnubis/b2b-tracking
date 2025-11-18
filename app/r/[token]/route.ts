@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stitchTrackingLinkToLead } from '@/lib/identity-stitching'
 import { v4 as uuidv4 } from 'uuid'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * Redirect Tracking Endpoint
  *
