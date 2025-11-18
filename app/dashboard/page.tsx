@@ -4,6 +4,10 @@ import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { formatDate, timeAgo } from '@/lib/utils'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 async function getLeadsWithActivity() {
   const leads = await prisma.lead.findMany({
     include: {
