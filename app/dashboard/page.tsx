@@ -284,9 +284,6 @@ export default async function DashboardPage() {
                 </div>
               ) : (
                 anonymousSessions.map((session) => {
-                  const firstEvent = session.events[session.events.length - 1]
-                  const lastEvent = session.events[0]
-
                   return (
                     <div
                       key={session.id}
@@ -330,10 +327,10 @@ export default async function DashboardPage() {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <h4 className="text-xs font-semibold text-gray-700 mb-3">Session Timeline</h4>
                           <div className="space-y-2">
-                            {session.events.map((event, index) => (
+                            {session.events.map((event) => (
                               <div key={event.id} className="flex items-start gap-3 text-sm">
-                                <div className="flex-shrink-0 w-16 text-xs text-gray-500">
-                                  {formatDate(event.createdAt).split(',')[1]?.trim() || formatDate(event.createdAt)}
+                                <div className="flex-shrink-0 w-32 text-xs text-gray-500">
+                                  {formatDate(event.createdAt)}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
