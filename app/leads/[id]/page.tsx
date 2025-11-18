@@ -12,34 +12,42 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 async function getLeadWithActivity(id: number) {
-  const lead = await prisma.lead.findUnique({
-    where: { id },
-    include: {
-      events: {
-        orderBy: { createdAt: 'desc' },
-        include: {
-          session: {
-            select: {
-              ipAddress: true,
-              userAgent: true,
-              referrer: true,
-              utmSource: true,
-              utmMedium: true,
-              utmCampaign: true,
+  try {
+    console.log('[Lead Page] Fetching lead with ID:', id)
+
+    const lead = await prisma.lead.findUnique({
+      where: { id },
+      include: {
+        events: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            session: {
+              select: {
+                ipAddress: true,
+                userAgent: true,
+                referrer: true,
+                utmSource: true,
+                utmMedium: true,
+                utmCampaign: true,
+              }
             }
           }
+        },
+        sessions: {
+          orderBy: { startedAt: 'desc' },
+        },
+        trackingLinks: {
+          orderBy: { createdAt: 'desc' },
         }
-      },
-      sessions: {
-        orderBy: { startedAt: 'desc' },
-      },
-      trackingLinks: {
-        orderBy: { createdAt: 'desc' },
       }
-    }
-  })
+    })
 
-  return lead
+    console.log('[Lead Page] Lead found:', lead ? `ID ${lead.id}` : 'null')
+    return lead
+  } catch (error) {
+    console.error('[Lead Page] Error fetching lead:', error)
+    throw error
+  }
 }
 
 function getEventIcon(eventType: string) {
@@ -79,17 +87,22 @@ function getEventColor(eventType: string) {
 export default async function LeadProfilePage({ params }: { params: Promise<{ id: string }> }) {
   // Await params as required by Next.js 14.2+
   const { id } = await params
+  console.log('[Lead Page] Received id param:', id)
 
   const leadId = parseInt(id)
   if (isNaN(leadId)) {
+    console.log('[Lead Page] Invalid lead ID, calling notFound()')
     notFound()
   }
 
   const lead = await getLeadWithActivity(leadId)
 
   if (!lead) {
+    console.log('[Lead Page] Lead not found, calling notFound()')
     notFound()
   }
+
+  console.log('[Lead Page] Rendering lead page for:', lead.email)
 
   return (
     <div className="min-h-screen bg-gray-50">

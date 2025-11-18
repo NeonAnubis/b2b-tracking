@@ -5,8 +5,6 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
-  // Output configuration for Vercel
-  output: 'standalone',
   // Skip database connection during build
   webpack: (config, { isServer }) => {
     if (isServer) {
@@ -17,8 +15,6 @@ const nextConfig = {
     }
     return config
   },
-  // Skip trailing slash redirect
-  skipTrailingSlashRedirect: true,
 }
 
 module.exports = nextConfig
