@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createTrackingLink } from '@/lib/identity-stitching'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const createLinkSchema = z.object({
   leadId: z.number(),
   destinationUrl: z.string().url(),

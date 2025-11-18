@@ -3,6 +3,10 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateSession, stitchSessionToLead } from '@/lib/identity-stitching'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // Validation schema
 const trackingEventSchema = z.object({
   trackingId: z.string(), // Allow any string for demo purposes
