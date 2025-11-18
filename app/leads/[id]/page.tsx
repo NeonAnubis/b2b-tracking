@@ -76,8 +76,11 @@ function getEventColor(eventType: string) {
   }
 }
 
-export default async function LeadProfilePage({ params }: { params: { id: string } }) {
-  const leadId = parseInt(params.id)
+export default async function LeadProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  // Await params as required by Next.js 14.2+
+  const { id } = await params
+
+  const leadId = parseInt(id)
   if (isNaN(leadId)) {
     notFound()
   }

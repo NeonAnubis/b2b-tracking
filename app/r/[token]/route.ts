@@ -14,9 +14,11 @@ export const runtime = 'nodejs'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    // Await params as required by Next.js 14.2+
+    const { token } = await params
     const { searchParams } = new URL(request.url)
 
     // Get or generate identifiers
@@ -33,7 +35,7 @@ export async function GET(
 
     // Stitch the tracking link to lead
     const result = await stitchTrackingLinkToLead(
-      params.token,
+      token,
       anonymousId,
       sessionId
     )
