@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// CORE IDENTITY TRACKING TABLES
+// ============================================
+
+model Lead {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  firstName  String?  @map("first_name")
+  lastName   String?  @map("last_name")
+  company    String?
+  phone      String?
+
+  // Metadata
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  sessions   Session[]
+  events     Event[]
+  trackingLinks TrackingLink[]
+
+  @@map("leads")
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Session {
+  id          String   @id @default(uuid()) @db.Uuid
+  anonymousId String   @map("anonymous_id") @db.Uuid
+  leadId      Int?     @map("lead_id")
+
+  // Session metadata
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  referrer    String?
+  utmSource   String?  @map("utm_source")
+  utmMedium   String?  @map("utm_medium")
+  utmCampaign String?  @map("utm_campaign")
+
+  // Timing
+  startedAt   DateTime @default(now()) @map("started_at")
+  endedAt     DateTime? @map("ended_at")
+
+  // Relations
+  lead        Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  events      Event[]
+
+  @@map("sessions")
+  @@index([anonymousId])
+  @@index([leadId])
+  @@index([startedAt])
+}
+
+model Event {
+  id         Int      @id @default(autoincrement())
+  sessionId  String   @map("session_id") @db.Uuid
+  leadId     Int?     @map("lead_id")
+
+  // Event details
+  eventType  String   @map("event_type") // 'page_view', 'link_click', 'call_booked', 'form_submit', etc.
+  eventData  Json?    @map("event_data") @db.JsonB
+
+  // Page context
+  pageUrl    String?  @map("page_url")
+  pageTitle  String?  @map("page_title")
+
+  // Timing
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  lead       Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("events")
+  @@index([sessionId])
+  @@index([leadId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([leadId, createdAt])
+}
+
+model TrackingLink {
+  id             Int      @id @default(autoincrement())
+  token          String   @unique @default(uuid()) @db.Uuid
+  leadId         Int      @map("lead_id")
+
+  // Link details
+  destinationUrl String   @map("destination_url")
+  campaignId     String?  @map("campaign_id")
+  campaignName   String?  @map("campaign_name")
+
+  // Analytics
+  clicks         Int      @default(0)
+  uniqueClicks   Int      @default(0) @map("unique_clicks")
+
+  // Timing
+  createdAt      DateTime @default(now()) @map("created_at")
+  expiresAt      DateTime? @map("expires_at")
+
+  // Relations
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("tracking_links")
+  @@index([token])
+  @@index([leadId])
+  @@index([campaignId])
+}
+
+// ============================================
+// USER & WORKSPACE MANAGEMENT
+// ============================================
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+
+  // Auth
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  workspaces WorkspaceUser[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id          Int      @id @default(autoincrement())
+  name        String
+  domain      String?  @unique
+
+  // Tracking configuration
+  trackingId  String   @unique @default(uuid()) @map("tracking_id") @db.Uuid
+
+  // Metadata
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users       WorkspaceUser[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceUser {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  workspaceId Int      @map("workspace_id")
+  role        String   @default("member") // 'owner', 'admin', 'member'
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@map("workspace_users")
+}
